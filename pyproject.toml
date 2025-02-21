@@ -1,9 +1,9 @@
 [build-system]
-requires = ["setuptools>=42", "wheel"]
+requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "brain-norm"
+name = "brainnorm"
 version = "0.1.0"
 description = "A Python package for localisation"
 authors = [

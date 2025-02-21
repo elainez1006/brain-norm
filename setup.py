@@ -9,7 +9,7 @@ with open('README.md', 'rt') as f:
     long_description = f.read()
 
 setup(
-    name='brain-norm',
+    name='brainnorm',
     version='0.1.0',  # Update the version number for new releases
     url='https://github.com/elainez1006/brain-norm',
     license='MIT',
