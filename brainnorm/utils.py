@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from sklearn.model_selection import KFold
-from typing import Tuple, List
+from typing import Tuple, List, Union
 
 
 def read_dataframe(data_path: str) -> pd.DataFrame:
@@ -54,3 +54,12 @@ def pearson_correlation(y_true, y_pred):
     y_true = (y_true - np.mean(y_true, axis=0)) / np.std(y_true, axis=0)
     y_pred = (y_pred - np.mean(y_pred, axis=0)) / np.std(y_pred, axis=0)
     return np.mean(np.sum(y_true * y_pred, axis=0))
+
+def reorder_data(data: Union[pd.DataFrame, np.ndarray], indices: List[int]) -> Union[pd.DataFrame, np.ndarray]:
+    """reorder data by indices"""
+    if isinstance(data, pd.DataFrame):
+        return data.iloc[indices]
+    elif isinstance(data, np.ndarray):
+        return data[indices]
+    else:
+        raise ValueError("Input data must be a pandas DataFrame or a numpy array")
