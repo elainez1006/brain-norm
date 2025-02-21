@@ -48,3 +48,9 @@ def split_dataframe(data: pd.DataFrame, folds: int, id_col: str, random_state: i
         slices_test.append([k for k, subject in enumerate(subject_index) if subject in unique_ids_test])
 
     return slices_train, slices_test
+
+def pearson_correlation(y_true, y_pred):
+    """calculate pearson correlation between y_true and y_pred (row-wise)"""
+    y_true = (y_true - np.mean(y_true, axis=0)) / np.std(y_true, axis=0)
+    y_pred = (y_pred - np.mean(y_pred, axis=0)) / np.std(y_pred, axis=0)
+    return np.mean(np.sum(y_true * y_pred, axis=0))
