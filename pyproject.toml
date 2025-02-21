@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "brain-norm"
+version = "0.1.0"
+description = "A Python package for localisation"
+authors = [
+    {name = "Elaine Zhang", email = "elainez1005@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.7"
+license = {text = "MIT"}
+dynamic = ["dependencies"]
+
+[project.urls]
+Homepage = "https://github.com/elainez1006/brain-norm"
+
+[tool.setuptools]
+packages = {find = {}}
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
