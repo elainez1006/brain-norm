@@ -32,7 +32,7 @@ def split_dataframe(data: pd.DataFrame, folds: int, id_col: str, random_state: i
         random_state (int): The random state to use for splitting the data.
         
     Returns:
-        Tuple[pd.DataFrame, pd.DataFrame]: The training and testing sets.
+        Tuple[List[int], List[int]]: Indices of the training and testing sets.
     """
     subject_index, _ = pd.factorize(data[id_col])
     unique_subject_index = np.unique(subject_index)
