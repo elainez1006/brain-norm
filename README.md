@@ -5,7 +5,7 @@ Brainnorm is a toolbox that uses normative modeling to predict cognitive scores.
 
 ## Why normative modeling?
 
-TBC
+For decades, pediatricians have used normative modeling for developing Growth Charts. Similarly, for predicting brain development, normative modeling is a critical tool for predicting the underlying framework. With the neuroscience package, PCNtoolkit, a variety of normative modeling algorithms are offered.
 
 ## Installation
 
