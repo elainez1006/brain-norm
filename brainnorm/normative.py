@@ -7,18 +7,18 @@ import pickle
 from brainnorm.utils import reorder_data
 
 
-def fit_normative_model(cov: Union[pd.DataFrame, np.ndarray], resp: Union[pd.DataFrame, np.ndarray], 
+def fit_normative_model(covariates: Union[pd.DataFrame, np.ndarray], response: Union[pd.DataFrame, np.ndarray], 
                         train_idx: List[List[int]], test_idx: List[List[int]], 
                         output_path: str, log_path: str, outputsuffix: str, 
                         alg: str = 'gpr', optimizer: str = 'powell', save_results: bool = True, 
                         batch: Union[pd.DataFrame, np.ndarray, None] = None,
-                        savemodel: bool = True):
+                        save_model: bool = True):
     """
     Fit normative models to dataframe or numpy array.
     
     Args:
-        cov (Union[pd.DataFrame, np.ndarray]): The covariance data.
-        resp (Union[pd.DataFrame, np.ndarray]): The response data.
+        covariates (Union[pd.DataFrame, np.ndarray]): The covariates data.
+        response (Union[pd.DataFrame, np.ndarray]): The response data.
         batch (Union[pd.DataFrame, np.ndarray]): The batch effect data.
         train_idx (List[List[int]]): Indices of the training set.
         test_idx (List[List[int]]): Indices of the testing set.
@@ -38,14 +38,14 @@ def fit_normative_model(cov: Union[pd.DataFrame, np.ndarray], resp: Union[pd.Dat
         raise ValueError('You need to provide batch effect data for Hierarchical Bayesian model.')
 
     # to store the deviation scores
-    all_results = np.zeros((cov.shape[0], 3))
+    all_results = np.zeros((covariates.shape[0], 3))
 
     # iterate over the folds
     for fold_idx, (slices_train, slices_test) in enumerate(zip(train_idx, test_idx)):
-        cov_train = cov.iloc[slices_train]
-        cov_test = cov.iloc[slices_test]
-        resp_train = resp.iloc[slices_train]
-        resp_test = resp.iloc[slices_test]
+        cov_train = covariates.iloc[slices_train]
+        cov_test = covariates.iloc[slices_test]
+        resp_train = response.iloc[slices_train]
+        resp_test = response.iloc[slices_test]
         with open(f'cov_train_fold{fold_idx}.pkl', 'wb') as f:
             pickle.dump(cov_train, f)
         with open(f'resp_train_fold{fold_idx}.pkl', 'wb') as f:
@@ -67,7 +67,7 @@ def fit_normative_model(cov: Union[pd.DataFrame, np.ndarray], resp: Union[pd.Dat
             alg=alg, 
             optimizer=optimizer, 
             save_results=save_results,
-            savemodel=savemodel
+            savemodel=save_model
         )
         # load the deviation scores
         with open(f'Z_{outputsuffix}_fold{fold_idx}.pkl', 'rb') as f:
@@ -79,20 +79,24 @@ def fit_normative_model(cov: Union[pd.DataFrame, np.ndarray], resp: Union[pd.Dat
         all_results[slices_test] = np.stack([Z, yhat, s2], axis=1)
     return pd.DataFrame(data=all_results, columns=['Z', 'yhat', 's2'])
 
-def predict_normative_model(model_path: str, test_data: pd.DataFrame, alg: str = 'gpr'):
+def predict_normative_model(covariates: pd.DataFrame, measures: pd.DataFrame, model_path: str, alg: str = 'gpr'):
     """
     Make predictions for unseen subjects using a normative model.
     
     Args:
+        covariates (pd.DataFrame): The covariates data.
+        measures (pd.DataFrame): The measures data.
         model_path (str): The path to the normative model.
-        test_data (pd.DataFrame): The data to make predictions for. (Must match the training data)
         alg (str): The algorithm to use for prediction.
         
     Returns:
         Tuple[np.ndarray, np.ndarray, np.ndarray]: The predicted mean, the variance, and the deviation scores.
     """
-    cov_file = 'test_data.pkl'
+    cov_file = 'test_covariates.pkl'
+    resp_file = 'test_measures.pkl'
     with open(cov_file, 'wb') as f:
-        pickle.dump(test_data, f)
-    yhat, s2, Z = predict(cov_file, alg=alg, outscaler='standardize', model_path=model_path)
+        pickle.dump(covariates, f)
+    with open(resp_file, 'wb') as f:
+        pickle.dump(measures, f)
+    yhat, s2, Z = predict(cov_file, respfile=resp_file,  alg=alg, outscaler='standardize', model_path=model_path)
     return Z, yhat, s2

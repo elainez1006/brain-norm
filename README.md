@@ -40,9 +40,9 @@ Below is a minimal example of how to fit normative models using this toolbox. Fi
 
 ```python
 import pandas as pd
-from brainnorm.utils import split_dataframe
+from brainnorm.utils import read_dataframe, split_dataframe
 
-# load brain measures and covariates - these dataframes should have the same number of rows
+# load brain measures and covariates - these dataframes should have the same number of rows (i.e., subjects are matched)
 measures = pd.read_csv('measures.csv')
 covariates = pd.read_csv('covariates.csv')
 
@@ -52,15 +52,78 @@ train_idx, test_idx = split_dataframe(measures, folds=3, id_col='subject_id')
 
 Here `id_col` is the column that contains the subject IDs, and `folds` is the number of folds to split the data into. This function takes care of repeated scans for the same subject, so that the same subject is not split into different folds, avoiding data leakage.
 
-Next, fit normative models across different folds:
+Next, fit normative models across different folds, using the indices generated in the previous step:
 
 ```python
 fit_normative_model(
-    cov=covariates, resp=measures, 
+    covariates=covariates, response=measures, 
     train_idx=train_idx, test_idx=test_idx, 
     output_path='output', log_path='log', outputsuffix='', 
-    alg: str = 'gpr', optimizer: str = 'powell', save_results: bool = True, 
-    batch: Union[pd.DataFrame, np.ndarray, None] = None,
-    savemodel: bool = True
+    alg='gpr', optimizer='powell', save_results=True, 
+    savemodel=True
 )
 ```
+
+This command will fit normative models across different folds, and save the results in the `output` directory. You can use different algorithms and optimizers to fit the normative models. Available options of `alg` include `gpr`, `blr`, `hbr`, etc. More details can be found in the documentation.
+
+To save results of the normative models, you can set `save_results=True`. This will save the results in a csv file with the provided `outputsuffix`.
+
+To save the model, you can set `savemodel=True`. This will save the model in a pickle file with the provided `outputsuffix`.
+
+### Train and predict cognitive scores
+
+After fitting the normative models, you can train and predict cognitive scores using the outputs from the normative models. This is done using the `fit_score_model` function.
+
+First, load the deviation scores (output from the normative models) and the cognitive scores:
+
+```python
+# load deviation scores
+with open(f'Z_outputsuffix.pkl', 'rb') as f:
+    Z = pickle.load(f)
+
+# load the dataframe containing the cognitive scores
+# note that this dataframe should have rows matching measures and covariates
+y = read_dataframe('cognitive_scores.csv')
+```
+
+Then, train and predict cognitive scores:
+
+```python
+predictions = fit_score_model(
+    Z=Z, y=y, slices_train=train_idx, slices_test=test_idx, 
+    alg='ElasticNet', n_jobs=-1, maxiter=10000, save_model=True
+)
+```
+
+Available options of `alg` include `ElasticNet`, `Lasso`, `Ridge`, etc. For more details on the available algorithms, please refer to [TBC]. Here we recommend using `ElasticNet` as it is a good balance between sparsity and stability. `n_jobs` is the number of jobs to run in parallel, and `maxiter` is the maximum number of iterations for the model.
+
+The returned `predictions` contains the predicted cognitive scores for the testing set in each fold.
+
+To save the model, you can set `save_model=True`. This will save the prediction coefficients for future predictions.
+
+### Predict deviation scores and cognitive scores using pre-trained models
+
+This toolbox allows you to save the pre-trained models to predict deviation scores and thus cognitive scores for new datasets. Here we provide an example of how to do this.
+
+First, predict deviation scores using the pre-trained models:
+
+```python
+# load a new dataset. Note that this new dataset should have the same columns as the training data.
+new_measures = pd.read_csv('new_measures.csv')
+new_covariates = pd.read_csv('new_covariates.csv')
+
+# predict deviation scores
+Z, yhat, s2 = predict_normative_model(
+    covariates=new_covariates, measures=new_measures, 
+    model_path='pretrained_model.pkl', alg='gpr'
+)
+```
+
+Next, predict cognitive scores using the deviation scores:
+
+```python
+# predict cognitive scores
+predictions = predict_score(Z=Z, coefs_filename='coefs_pretrained_model.pkl')
+```
+
+The returned `predictions` contains the predicted cognitive scores for the new dataset.
