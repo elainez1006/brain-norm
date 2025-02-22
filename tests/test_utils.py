@@ -1,7 +1,8 @@
 # test_data_utils.py
 import pytest
 import pandas as pd
-from brainnorm.utils import read_dataframe, split_dataframe
+import numpy as np
+from brainnorm.utils import read_dataframe, split_dataframe, reorder_data
 
 
 @pytest.fixture
@@ -36,3 +37,21 @@ def test_split_dataframe(sample_df):
     # Check train and test are different
     for train, test in zip(slices_train, slices_test):
         assert set(train).isdisjoint(set(test))
+        
+def test_reorder_data():
+    # Test with DataFrame
+    df = pd.DataFrame({'A': [1, 2, 3], 'B': [4, 5, 6]})
+    indices = [2, 0, 1]
+    result_df = reorder_data(df, indices)
+    assert isinstance(result_df, pd.DataFrame)
+    assert list(result_df['A']) == [3, 1, 2]
+    
+    # Test with numpy array
+    arr = np.array([[1, 4], [2, 5], [3, 6]])
+    result_arr = reorder_data(arr, indices)
+    assert isinstance(result_arr, np.ndarray)
+    np.testing.assert_array_equal(result_arr, arr[indices])
+    
+    # Test with invalid input
+    with pytest.raises(ValueError):
+        reorder_data([1, 2, 3], indices)

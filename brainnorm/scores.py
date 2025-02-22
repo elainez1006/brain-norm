@@ -1,12 +1,9 @@
 import numpy as np
 import pandas as pd
-import pickle
 from sklearn.linear_model import ElasticNetCV, LassoCV, RidgeCV
-from sklearn.model_selection import KFold
-from sklearn.preprocessing import StandardScaler
 
 
-def train_and_predict_cognitive_scores(Z, y, slices_train, slices_test, alg='ElasticNet', n_jobs=-1, maxiter=10000):
+def fit_score_model(Z, y, slices_train, slices_test, alg='ElasticNet', n_jobs=-1, maxiter=10000):
     """
     train and predict cognitive scores using outputs from normative model
     
@@ -21,12 +18,11 @@ def train_and_predict_cognitive_scores(Z, y, slices_train, slices_test, alg='Ela
         Tuple[np.ndarray, np.ndarray]: The predicted cognitive scores and the deviation scores.
     """
     algs = {'ElasticNet': ElasticNetCV, 'Lasso': LassoCV, 'Ridge': RidgeCV}
-    scaler = StandardScaler()
     all_predictions = []
     for _, (train_idx, test_idx) in enumerate(zip(slices_train, slices_test)):
 
-        Z_train = scaler.fit_transform(Z[train_idx])
-        Z_test = scaler.transform(Z[test_idx])
+        Z_train = Z[train_idx]
+        Z_test = Z[test_idx]
 
         y_train = y[train_idx]
         y_test = y[test_idx]
@@ -37,9 +33,3 @@ def train_and_predict_cognitive_scores(Z, y, slices_train, slices_test, alg='Ela
         predictions = model.predict(Z_test)
         all_predictions.append(predictions)
     return all_predictions
-
-def mse(y_true, y_pred):
-    return np.mean((y_true - y_pred) ** 2)
-
-def mae(y_true, y_pred):
-    return np.mean(np.abs(y_true - y_pred))

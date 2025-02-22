@@ -36,7 +36,7 @@ def split_dataframe(data: pd.DataFrame, folds: int, id_col: str, random_state: i
     """
     subject_index, _ = pd.factorize(data[id_col])
     unique_subject_index = np.unique(subject_index)
-    kf = KFold(n_splits=3, shuffle=True, random_state=random_state)
+    kf = KFold(n_splits=folds, shuffle=True, random_state=random_state)
     
     slices_train = []
     slices_test = []

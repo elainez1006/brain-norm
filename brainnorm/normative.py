@@ -2,27 +2,30 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from pcntoolkit.normative import estimate, predict
-from typing import List
+from typing import List, Union
 import pickle
+from brainnorm.utils import reorder_data
 
 
-def fit_normative_model(cov: pd.DataFrame, resp: pd.DataFrame, 
+def fit_normative_model(cov: Union[pd.DataFrame, np.ndarray], resp: Union[pd.DataFrame, np.ndarray], 
                         train_idx: List[List[int]], test_idx: List[List[int]], 
                         output_path: str, log_path: str, outputsuffix: str, 
                         alg: str = 'gpr', optimizer: str = 'powell', save_results: bool = True, 
+                        batch: Union[pd.DataFrame, np.ndarray, None] = None,
                         savemodel: bool = True):
     """
-    Fit normative models to the data.
+    Fit normative models to dataframe or numpy array.
     
     Args:
-        cov (pd.DataFrame): The covariance data.
-        resp (pd.DataFrame): The response data.
+        cov (Union[pd.DataFrame, np.ndarray]): The covariance data.
+        resp (Union[pd.DataFrame, np.ndarray]): The response data.
+        batch (Union[pd.DataFrame, np.ndarray]): The batch effect data.
         train_idx (List[List[int]]): Indices of the training set.
         test_idx (List[List[int]]): Indices of the testing set.
         output_path (str): The path to the output directory.
         log_path (str): The path to the log directory.
         outputsuffix (str): The suffix to add to the output files.
-        alg (str): The algorithm to use for fitting the model.
+        alg (str): The algorithm to use for fitting the model. Options: 'gpr', 'hbr', 'blr'
         optimizer (str): The optimizer to use for fitting the model.
         save_results (bool): Whether to save the results.
         savemodel (bool): Whether to save the model.
@@ -30,7 +33,14 @@ def fit_normative_model(cov: pd.DataFrame, resp: pd.DataFrame,
     Returns:
         pd.DataFrame: The fitted model.
     """
-    all_results = []
+    # if use HBR, you need to provide batch effect data
+    if alg == 'hbr' and batch is None:
+        raise ValueError('You need to provide batch effect data for Hierarchical Bayesian model.')
+
+    # to store the deviation scores
+    all_results = np.zeros((cov.shape[0], 3))
+
+    # iterate over the folds
     for fold_idx, (slices_train, slices_test) in enumerate(zip(train_idx, test_idx)):
         cov_train = cov.iloc[slices_train]
         cov_test = cov.iloc[slices_test]
@@ -61,9 +71,13 @@ def fit_normative_model(cov: pd.DataFrame, resp: pd.DataFrame,
         )
         # load the deviation scores
         with open(f'Z_{outputsuffix}_fold{fold_idx}.pkl', 'rb') as f:
-            dev_scores = pickle.load(f)
-        all_results.append(dev_scores)
-    return all_results
+            Z = pickle.load(f)
+        with open(f'yhat_{outputsuffix}_fold{fold_idx}.pkl', 'rb') as f:
+            yhat = pickle.load(f)
+        with open(f'ys2_{outputsuffix}_fold{fold_idx}.pkl', 'rb') as f:
+            s2 = pickle.load(f)
+        all_results[slices_test] = np.stack([Z, yhat, s2], axis=1)
+    return pd.DataFrame(data=all_results, columns=['Z', 'yhat', 's2'])
 
 def predict_normative_model(model_path: str, test_data: pd.DataFrame, alg: str = 'gpr'):
     """
@@ -81,4 +95,4 @@ def predict_normative_model(model_path: str, test_data: pd.DataFrame, alg: str =
     with open(cov_file, 'wb') as f:
         pickle.dump(test_data, f)
     yhat, s2, Z = predict(cov_file, alg=alg, outscaler='standardize', model_path=model_path)
-    return yhat, s2, Z
+    return Z, yhat, s2
