@@ -95,7 +95,7 @@ predictions = fit_score_model(
 )
 ```
 
-Available options of `alg` include `ElasticNet`, `Lasso`, `Ridge`, etc. For more details on the available algorithms, please refer to [TBC]. Here we recommend using `ElasticNet` as it is a good balance between sparsity and stability. `n_jobs` is the number of jobs to run in parallel, and `maxiter` is the maximum number of iterations for the model.
+Available options of `alg` include `ElasticNet`, `Lasso`, `Ridge`, etc. For more details on the available algorithms, please refer to PCNtoolkit. Here we recommend using `ElasticNet` as it is a good balance between sparsity and stability. `n_jobs` is the number of jobs to run in parallel, and `maxiter` is the maximum number of iterations for the model.
 
 The returned `predictions` contains the predicted cognitive scores for the testing set in each fold.
 
