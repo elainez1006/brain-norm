@@ -5,7 +5,7 @@ Brainnorm is a toolbox that uses normative modeling to predict cognitive scores.
 
 ## Why normative modeling?
 
-For decades, pediatricians have used normative modeling for developing Growth Charts. Similarly, for predicting brain development, normative modeling is a critical tool for predicting the underlying framework. With the neuroscience package, PCNtoolkit, a variety of normative modeling algorithms are offered.
+For decades, pediatricians have used normative modeling for developing Growth Charts. Similarly, for predicting brain development, normative modeling is a critical tool for predicting the underlying framework. With this neuroscience package, a variety of normative modeling algorithms are offered including Hierarchical Bayesian Modeling, Gaussian Processing Regression, etc.
 
 ## Installation
 
@@ -95,7 +95,7 @@ predictions = fit_score_model(
 )
 ```
 
-Available options of `alg` include `ElasticNet`, `Lasso`, `Ridge`, etc. For more details on the available algorithms, please refer to PCNtoolkit. Here we recommend using `ElasticNet` as it is a good balance between sparsity and stability. `n_jobs` is the number of jobs to run in parallel, and `maxiter` is the maximum number of iterations for the model.
+Available options of `alg` include `ElasticNet`, `Lasso`, `Ridge`, etc. For more details on the available algorithms, please refer to [TBC]. Here we recommend using `ElasticNet` as it is a good balance between sparsity and stability. `n_jobs` is the number of jobs to run in parallel, and `maxiter` is the maximum number of iterations for the model.
 
 The returned `predictions` contains the predicted cognitive scores for the testing set in each fold.
 
