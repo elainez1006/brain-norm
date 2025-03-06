@@ -19,7 +19,7 @@ conda activate brainnorm
 After creating the environment, you can install the toolbox using the following command:
 
 ```bash
-git clone https://github.com/alawryaguila/brain-norm.git
+git clone https://github.com/elainez1006/brain-norm.git
 cd brain-norm
 pip install .
 ```
