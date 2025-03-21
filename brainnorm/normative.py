@@ -28,10 +28,10 @@ def fit_normative_model(covariates: Union[pd.DataFrame, np.ndarray], response: U
         alg (str): The algorithm to use for fitting the model. Options: 'gpr', 'hbr', 'blr'
         optimizer (str): The optimizer to use for fitting the model.
         save_results (bool): Whether to save the results.
-        savemodel (bool): Whether to save the model.
+        save_model (bool): Whether to save the model.
         
     Returns:
-        pd.DataFrame: The fitted model.
+        pd.DataFrame: The fitted model estimations.
     """
     # if use HBR, you need to provide batch effect data
     if alg == 'hbr' and batch is None:
@@ -42,10 +42,10 @@ def fit_normative_model(covariates: Union[pd.DataFrame, np.ndarray], response: U
 
     # iterate over the folds
     for fold_idx, (slices_train, slices_test) in enumerate(zip(train_idx, test_idx)):
-        cov_train = covariates.iloc[slices_train]
-        cov_test = covariates.iloc[slices_test]
-        resp_train = response.iloc[slices_train]
-        resp_test = response.iloc[slices_test]
+        cov_train = covariates.iloc[slices_train] if isinstance(covariates, pd.DataFrame) else covariates[slices_train]
+        cov_test = covariates.iloc[slices_test] if isinstance(covariates, pd.DataFrame) else covariates[slices_test]
+        resp_train = response.iloc[slices_train] if isinstance(response, pd.DataFrame) else response[slices_train]
+        resp_test = response.iloc[slices_test] if isinstance(response, pd.DataFrame) else response[slices_test]
         with open(f'cov_train_fold{fold_idx}.pkl', 'wb') as f:
             pickle.dump(cov_train, f)
         with open(f'resp_train_fold{fold_idx}.pkl', 'wb') as f:
@@ -54,6 +54,8 @@ def fit_normative_model(covariates: Union[pd.DataFrame, np.ndarray], response: U
             pickle.dump(cov_test, f)
         with open(f'resp_test_fold{fold_idx}.pkl', 'wb') as f:
             pickle.dump(resp_test, f)
+            
+        # TODO: add batch effect data if HBR is used
         estimate(
             covfile=f'cov_train_fold{fold_idx}.pkl', 
             respfile=f'resp_train_fold{fold_idx}.pkl', 
@@ -69,6 +71,7 @@ def fit_normative_model(covariates: Union[pd.DataFrame, np.ndarray], response: U
             save_results=save_results,
             savemodel=save_model
         )
+
         # load the deviation scores
         with open(f'Z_{outputsuffix}_fold{fold_idx}.pkl', 'rb') as f:
             Z = pickle.load(f)

@@ -3,6 +3,7 @@ import pandas as pd
 from pathlib import Path
 from sklearn.model_selection import KFold
 from typing import Tuple, List, Union
+from scipy.stats import pearsonr
 
 
 def read_dataframe(data_path: str) -> pd.DataFrame:
@@ -63,3 +64,12 @@ def reorder_data(data: Union[pd.DataFrame, np.ndarray], indices: List[int]) -> U
         return data[indices]
     else:
         raise ValueError("Input data must be a pandas DataFrame or a numpy array")
+
+def test_pearson_correlation():
+    y_true = np.array([[1, 2, 3], [4, 5, 6]])
+    y_pred = np.array([[1, 2, 3], [4, 5, 6]])
+    assert pearson_correlation(y_true, y_pred)[0, 0] == 1.0
+    
+    y_true = np.array([[1, 2, 3], [4, 5, 6]])
+    y_pred = np.array([[3, 2, 1], [4, 5, 6]])
+    assert pearson_correlation(y_true, y_pred)[0, 0] < 1.0
