@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import pandas as pd
 from pathlib import Path
@@ -46,21 +47,21 @@ def fit_normative_model(covariates: Union[pd.DataFrame, np.ndarray], response: U
         cov_test = covariates.iloc[slices_test] if isinstance(covariates, pd.DataFrame) else covariates[slices_test]
         resp_train = response.iloc[slices_train] if isinstance(response, pd.DataFrame) else response[slices_train]
         resp_test = response.iloc[slices_test] if isinstance(response, pd.DataFrame) else response[slices_test]
-        with open(f'cov_train_fold{fold_idx}.pkl', 'wb') as f:
+        with open(f'{output_path}/cov_train_fold{fold_idx}.pkl', 'wb') as f:
             pickle.dump(cov_train, f)
-        with open(f'resp_train_fold{fold_idx}.pkl', 'wb') as f:
+        with open(f'{output_path}/resp_train_fold{fold_idx}.pkl', 'wb') as f:
             pickle.dump(resp_train, f)
-        with open(f'cov_test_fold{fold_idx}.pkl', 'wb') as f:
+        with open(f'{output_path}/cov_test_fold{fold_idx}.pkl', 'wb') as f:
             pickle.dump(cov_test, f)
-        with open(f'resp_test_fold{fold_idx}.pkl', 'wb') as f:
+        with open(f'{output_path}/resp_test_fold{fold_idx}.pkl', 'wb') as f:
             pickle.dump(resp_test, f)
             
         # TODO: add batch effect data if HBR is used
         estimate(
-            covfile=f'cov_train_fold{fold_idx}.pkl', 
-            respfile=f'resp_train_fold{fold_idx}.pkl', 
-            testcov=f'cov_test_fold{fold_idx}.pkl', 
-            testresp=f'resp_test_fold{fold_idx}.pkl', 
+            covfile=f'{output_path}/cov_train_fold{fold_idx}.pkl', 
+            respfile=f'{output_path}/resp_train_fold{fold_idx}.pkl', 
+            testcov=f'{output_path}/cov_test_fold{fold_idx}.pkl', 
+            testresp=f'{output_path}/resp_test_fold{fold_idx}.pkl', 
             inscaler='standardize', 
             outscaler='standardize', 
             output_path=output_path, 
@@ -73,11 +74,11 @@ def fit_normative_model(covariates: Union[pd.DataFrame, np.ndarray], response: U
         )
 
         # load the deviation scores
-        with open(f'Z_{outputsuffix}_fold{fold_idx}.pkl', 'rb') as f:
+        with open(f'{output_path}/Z_{outputsuffix}_fold{fold_idx}.pkl', 'rb') as f:
             Z = pickle.load(f)
-        with open(f'yhat_{outputsuffix}_fold{fold_idx}.pkl', 'rb') as f:
+        with open(f'{output_path}/yhat_{outputsuffix}_fold{fold_idx}.pkl', 'rb') as f:
             yhat = pickle.load(f)
-        with open(f'ys2_{outputsuffix}_fold{fold_idx}.pkl', 'rb') as f:
+        with open(f'{output_path}/s2_{outputsuffix}_fold{fold_idx}.pkl', 'rb') as f:
             s2 = pickle.load(f)
         all_results[slices_test] = np.stack([Z, yhat, s2], axis=1)
     return pd.DataFrame(data=all_results, columns=['Z', 'yhat', 's2'])
@@ -102,4 +103,6 @@ def predict_normative_model(covariates: pd.DataFrame, measures: pd.DataFrame, mo
     with open(resp_file, 'wb') as f:
         pickle.dump(measures, f)
     yhat, s2, Z = predict(cov_file, respfile=resp_file,  alg=alg, outscaler='standardize', model_path=model_path)
-    return Z, yhat, s2
+    os.remove(cov_file)
+    os.remove(resp_file)
+    return yhat, s2, Z
