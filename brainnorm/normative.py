@@ -74,11 +74,11 @@ def fit_normative_model(covariates: Union[pd.DataFrame, np.ndarray], response: U
         )
 
         # load the deviation scores
-        with open(f'{output_path}/Z_{outputsuffix}_fold{fold_idx}.pkl', 'rb') as f:
+        with open(f'{output_path}/Z{outputsuffix}_fold{fold_idx}.pkl', 'rb') as f:
             Z = pickle.load(f)
-        with open(f'{output_path}/yhat_{outputsuffix}_fold{fold_idx}.pkl', 'rb') as f:
+        with open(f'{output_path}/yhat{outputsuffix}_fold{fold_idx}.pkl', 'rb') as f:
             yhat = pickle.load(f)
-        with open(f'{output_path}/s2_{outputsuffix}_fold{fold_idx}.pkl', 'rb') as f:
+        with open(f'{output_path}/s2{outputsuffix}_fold{fold_idx}.pkl', 'rb') as f:
             s2 = pickle.load(f)
         all_results[slices_test] = np.stack([Z, yhat, s2], axis=1)
     return pd.DataFrame(data=all_results, columns=['Z', 'yhat', 's2'])
